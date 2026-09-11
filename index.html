@@ -84,6 +84,11 @@
   <p class="mut" style="margin:-4px 0 12px;font-size:13.5px">
     Sorted by <b>ROI lower bound</b> (5th percentile of 1,000 bootstrap resamples): the number
     a wallet would still show in a pessimistic scenario. Click any column to re-sort.</p>
+  <p class="mut" style="margin:-4px 0 14px;font-size:13px;border-left:2px solid #2b3446;padding-left:12px">
+    <b>Why a "Scalps" column?</b> Entering above 90¢ risks far more than it can win — buying at
+    98.7¢ risks $86k to make $3k, and one loss erases 99 wins. Those positions are
+    <b>excluded from every metric on this page</b> and counted here instead, so the numbers
+    above describe trades that can actually be replicated. They are shown, not hidden.</p>
   <table id="main">
     <thead><tr>
       <th class="l" data-k="alias">Wallet</th>
@@ -95,6 +100,7 @@
       <th data-k="roi_lower">ROI lower</th>
       <th class="hide-s" data-k="z">Z</th>
       <th data-k="pnl">P&amp;L $</th>
+      <th class="hide-s" data-k="high_price_positions" title="Positions entered above 90¢ — excluded from edge metrics">Scalps &gt;90¢</th>
       <th data-k="evidence">Evidence</th>
     </tr></thead>
     <tbody></tbody>
@@ -174,6 +180,9 @@ function row(w, main){
     ${main?`<td class="${cls(lo)}"><b>${fmtSign(lo)}</b></td>`:''}
     <td class="${w.z>=1.5?'pos':(w.z<0?'neg':'mut')}">${(w.z>=0?'+':'')+w.z.toFixed(2)}</td>
     <td class="${cls(w.pnl)}">${fmtUsd(w.pnl)}</td>
+    ${main?`<td class="${(w.high_price_positions||0)>=20?'neg':'mut'}"
+        title="Excluded from edge metrics: entering above 90¢ risks far more than it wins">
+        ${w.high_price_positions||0}</td>`:''}
     <td><span class="badge b-${(w.evidence||'').replace(' ','-')}">${w.evidence||''}</span></td>`;
   return t;
 }
