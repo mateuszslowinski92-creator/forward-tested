@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forward Tested — Polymarket trader verification</title>
+<meta name="description" content="Forward-tested Polymarket traders. Every tracked wallet is published with its later performance — including the ones that lose money.">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131822; --panel2:#0f131b; --line:#222a38;
+    --fg:#e6ebf5; --dim:#8b98ad; --acc:#4ade80; --neg:#f87171; --warn:#fbbf24;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:#7dd3fc;text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  header{border-bottom:1px solid var(--line);padding:26px 0 22px;background:
+    radial-gradient(900px 240px at 20% -40%,rgba(74,222,128,.10),transparent)}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.4px}
+  h1 span{color:var(--acc)}
+  .tag{color:var(--dim);max-width:760px;margin:0}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:1.1px;color:var(--dim);
+    margin:34px 0 12px;font-weight:600}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+  .card .k{font-size:24px;font-weight:650;font-variant-numeric:tabular-nums}
+  .card .l{color:var(--dim);font-size:12px;margin-top:3px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  ul.meth{margin:0;padding-left:20px;color:#c6cfdd}
+  ul.meth li{margin:7px 0}
+  ul.meth li b{color:var(--fg)}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);
+    text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);
+    cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0;background:var(--bg)}
+  th:hover{color:var(--fg)}
+  th.l,td.l{text-align:left}
+  td{padding:9px 8px;border-bottom:1px solid #1a2130;text-align:right;white-space:nowrap}
+  tbody tr:hover{background:#151b26}
+  .mono{font-family:var(--mono);font-size:13px}
+  .pos{color:var(--acc)} .neg{color:var(--neg)} .mut{color:var(--dim)}
+  .badge{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:20px;
+    border:1px solid var(--line);color:var(--dim);letter-spacing:.3px}
+  .b-conclusive{color:var(--acc);border-color:#1d4d33;background:#0f2119}
+  .b-suggestive{color:var(--warn);border-color:#4d3f14;background:#211c0f}
+  .b-no\x20edge,.b-insufficient{color:var(--dim)}
+  .cat{font-size:11.5px;color:var(--dim)}
+  .row0{background:#101a14!important}
+  details{margin-top:12px}
+  summary{cursor:pointer;color:var(--dim);font-size:13px}
+  .foot{color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);
+    margin-top:38px;padding:20px 0 44px;line-height:1.7}
+  .warnbox{border-left:3px solid var(--warn);background:#1a160c;padding:12px 16px;
+    border-radius:8px;color:#e8d9ae;font-size:13.5px;margin-top:14px}
+  .okbox{border-left:3px solid var(--acc);background:#0f1c14;padding:12px 16px;
+    border-radius:8px;font-size:13.5px;margin-top:14px;color:#cfe9d9}
+  code{background:#1a2130;padding:2px 6px;border-radius:5px;font-family:var(--mono);font-size:12.5px}
+  @media(max-width:820px){.hide-s{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Forward <span>Tested</span></h1>
+    <p class="tag">We pick Polymarket wallets, publish them, then publish what happened next.
+       Every tracked wallet is listed below — <b>including the ones that lost money.</b>
+       No profit screenshots.</p>
+    <div class="cards" id="cards"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <h2>How this is calculated</h2>
+  <div class="panel"><ul class="meth" id="meth"></ul>
+    <div class="okbox">Every number is derived from public blockchain data and official
+      Polymarket resolutions. Anyone can verify any wallet independently — each address links
+      to its public profile.</div>
+  </div>
+
+  <h2>Ranked by evidence, not by luck — <span id="hcount"></span> wallets</h2>
+  <p class="mut" style="margin:-4px 0 12px;font-size:13.5px">
+    Sorted by <b>ROI lower bound</b> (5th percentile of 1,000 bootstrap resamples): the number
+    a wallet would still show in a pessimistic scenario. Click any column to re-sort.</p>
+  <table id="main">
+    <thead><tr>
+      <th class="l" data-k="alias">Wallet</th>
+      <th class="hide-s" data-k="category">Category</th>
+      <th data-k="positions">Positions</th>
+      <th data-k="winrate">Win rate</th>
+      <th class="hide-s" data-k="avg_price">Avg price</th>
+      <th data-k="roi_forward">ROI (fwd)</th>
+      <th data-k="roi_lower">ROI lower</th>
+      <th class="hide-s" data-k="z">Z</th>
+      <th data-k="pnl">P&amp;L $</th>
+      <th data-k="evidence">Evidence</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <details>
+    <summary>Show small-sample wallets (under 8 resolved positions) — not ranked, listed for completeness</summary>
+    <table id="small"><thead><tr>
+      <th class="l" data-k="alias">Wallet</th>
+      <th class="hide-s" data-k="category">Category</th>
+      <th data-k="positions">Positions</th>
+      <th data-k="winrate">Win rate</th>
+      <th data-k="roi_forward">ROI (fwd)</th>
+      <th data-k="z">Z</th>
+      <th data-k="pnl">P&amp;L $</th>
+      <th data-k="evidence">Evidence</th>
+    </tr></thead><tbody></tbody></table>
+  </details>
+
+  <h2>What we do not claim</h2>
+  <div class="panel">
+    <ul class="meth">
+      <li>We are <b>not selling signals</b> and we do not trade these wallets ourselves.</li>
+      <li>Past forward performance <b>does not guarantee</b> future results. Wallets decay, adapt or close.</li>
+      <li>We do <b>not</b> promise returns, and nothing here is financial advice.</li>
+      <li>We are <b>not affiliated</b> with Polymarket. All data is public.</li>
+      <li>Short samples are noise. We label them instead of hiding them — see the evidence column.</li>
+    </ul>
+  </div>
+
+  <div class="warnbox" id="honesty"></div>
+
+  <h2>Follow this log</h2>
+  <div class="panel">
+    <p style="margin:0 0 10px">This page is a test: does anyone want a prediction-market leaderboard
+      that shows its own failures? If yes, it will keep running and get more data. If not, it costs
+      nothing to leave up.</p>
+    <ul class="meth">
+      <li><b>Watch the repo</b> (star / watch) — the strongest signal that this is worth continuing:
+        <a id="repoLink" href="#" target="_blank" rel="noopener">github.com →</a></li>
+      <li><b>Disagree with a number?</b> Open an issue with the wallet address — every metric here
+        is reproducible from public data, and corrections are published.</li>
+      <li>Raw dataset: <a id="dataLink" href="data/leaderboard.json">leaderboard.json</a> (open,
+        no auth, refreshed every 6 hours).</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    <div>Data generated <b id="gen"></b> · watchlist started <b id="start"></b> ·
+      auto-refreshed every 6 hours.</div>
+    <div style="margin-top:8px">Methodology: one observation = one position (wallet × market),
+      not one trade fill. ROI is capital-weighted (<code>Σ P&amp;L / Σ stake</code>), never an
+      average of percentages. Bootstrap confidence intervals, n=1,000.</div>
+    <div style="margin-top:8px">Built as an open verification log. Source data: Polymarket
+      Gamma API + on-chain settlement. <span id="repo"></span></div>
+  </div>
+</div>
+
+<script>
+const fmtPct=(v,d=1)=>v===null||v===undefined?'—':(v*100).toFixed(d)+'%';
+const fmtSign=(v,d=1)=>v===null||v===undefined?'—':(v*100>=0?'+':'')+(v*100).toFixed(d)+'%';
+const cls=v=>v===null||v===undefined?'mut':(v>0?'pos':'neg');
+const fmtUsd=v=>(v>=0?'+':'−')+'$'+Math.abs(Math.round(v)).toLocaleString();
+const short=w=>w.slice(0,6)+'…'+w.slice(-4);
+
+function row(w, main){
+  const t=document.createElement('tr');
+  const lo=w.roi_lower;
+  t.innerHTML=`
+    <td class="l mono"><a href="https://polymarket.com/profile/${w.wallet}" target="_blank"
+      rel="noopener" title="${w.wallet}">${short(w.wallet)}</a></td>
+    <td class="hide-s cat">${w.category||''}</td>
+    <td>${w.positions}</td>
+    <td>${fmtPct(w.winrate,0)}</td>
+    ${main?`<td class="hide-s">${fmtPct(w.avg_price,1)}</td>`:''}
+    <td class="${cls(w.roi_forward)}">${fmtSign(w.roi_forward)}</td>
+    ${main?`<td class="${cls(lo)}"><b>${fmtSign(lo)}</b></td>`:''}
+    <td class="${w.z>=1.5?'pos':(w.z<0?'neg':'mut')}">${(w.z>=0?'+':'')+w.z.toFixed(2)}</td>
+    <td class="${cls(w.pnl)}">${fmtUsd(w.pnl)}</td>
+    <td><span class="badge b-${(w.evidence||'').replace(' ','-')}">${w.evidence||''}</span></td>`;
+  return t;
+}
+
+function fill(id, rows, main){
+  const tb=document.querySelector('#'+id+' tbody'); tb.innerHTML='';
+  rows.forEach(w=>tb.appendChild(row(w,main)));
+}
+
+let DATA;
+
+// link do repo: wyprowadzany z adresu (działa na GitHub Pages bez hardkodowania)
+(function(){
+  const host = location.hostname;
+  const gh = host.endsWith('github.io')
+    ? 'https://github.com/' + host.split('.')[0] + '/' + location.pathname.split('/')[1]
+    : null;
+  const a = document.getElementById('repoLink');
+  const f = document.getElementById('repo');
+  if (gh) {
+    a.href = gh; a.textContent = gh.replace('https://','');
+    f.innerHTML = 'Open dataset &amp; issues: <a href="' + gh + '">' + gh.replace('https://','') + '</a>';
+  } else {
+    a.textContent = '(locally hosted — repo link appears once published)';
+    f.textContent = 'Raw dataset: data/leaderboard.json';
+  }
+})();
+
+function sortBy(rows,k,dir){
+  return [...rows].sort((a,b)=>{
+    let x=a[k],y=b[k];
+    if(x===null||x===undefined) return 1; if(y===null||y===undefined) return -1;
+    if(typeof x==='string') return dir*x.localeCompare(y);
+    return dir*(x-y);
+  });
+}
+
+fetch('data/leaderboard.json?'+Date.now()).then(r=>r.json()).then(d=>{
+  DATA=d;
+  const T=d.totals;
+  document.getElementById('cards').innerHTML=[
+    ['Wallets tracked',T.wallets_tracked],
+    ['Resolved positions',T.positions_resolved.toLocaleString()],
+    ['Conclusive edge',T.conclusive],
+    ['Profitable',T.profitable],
+    ['Ranked (n≥'+d.min_positions_headline+')',T.headline_wallets],
+  ].map(([l,k])=>`<div class="card"><div class="k">${k}</div><div class="l">${l}</div></div>`).join('');
+  document.getElementById('meth').innerHTML=d.methodology.map(m=>`<li>${m}</li>`).join('');
+  document.getElementById('gen').textContent=d.generated_at.replace('T',' ').replace('Z',' UTC');
+  document.getElementById('start').textContent=d.watchlist_started;
+  document.getElementById('hcount').textContent=T.headline_wallets+' ';
+
+  const head=d.wallets.filter(w=>w.headline);
+  const rest=d.wallets.filter(w=>!w.headline);
+  fill('main',head,true); fill('small',rest,false);
+
+  const losers=d.wallets.filter(w=>w.roi_forward<0).length;
+  const worst=[...d.wallets].filter(w=>w.positions>=3).sort((a,b)=>a.pnl-b.pnl)[0]
+             || [...d.wallets].sort((a,b)=>a.pnl-b.pnl)[0];
+  document.getElementById('honesty').innerHTML=
+    `<b>This is the part most leaderboards omit:</b> of ${T.wallets_tracked} wallets we track,
+     <b>${losers} are currently losing money</b>. Our worst tracked wallet is down
+     <b>${fmtUsd(worst.pnl)}</b> across ${worst.positions}
+     ${worst.positions===1?'position':'positions'} and is listed below like
+     everyone else. An honest leaderboard has to show the failures, or it is advertising.`;
+}).catch(e=>{document.body.insertAdjacentHTML('beforeend',
+  `<div class="wrap"><div class="warnbox">Data load failed: ${e}. Try a hard refresh.</div></div>`)});
+
+document.querySelectorAll('th').forEach(th=>{
+  let dir=-1;
+  th.addEventListener('click',()=>{
+    const table=th.closest('table'); const id=table.id;
+    const rows=id==='main'?DATA.wallets.filter(w=>w.headline):DATA.wallets.filter(w=>!w.headline);
+    dir=-dir;
+    const sorted=sortBy(rows,th.dataset.k,dir);
+    fill(id,sorted,id==='main');
+  });
+});
+</script>
+</body>
+</html>
